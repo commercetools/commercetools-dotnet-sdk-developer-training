@@ -1,7 +1,0 @@
-/Users/nageshdixit/sources/commercetools-net-sdk-developer-training/obj/Debug/net8.0/commercetools-net-sdk-developer-training.csproj.AssemblyReference.cache
-/Users/nageshdixit/sources/commercetools-net-sdk-developer-training/obj/Debug/net8.0/commercetools-net-sdk-developer-training.GeneratedMSBuildEditorConfig.editorconfig
-/Users/nageshdixit/sources/commercetools-net-sdk-developer-training/obj/Debug/net8.0/commercetools-net-sdk-developer-training.AssemblyInfoInputs.cache
-/Users/nageshdixit/sources/commercetools-net-sdk-developer-training/obj/Debug/net8.0/commercetools-net-sdk-developer-training.AssemblyInfo.cs
-/Users/nageshdixit/sources/commercetools-net-sdk-developer-training/obj/Debug/net8.0/commercetools-net-sdk-developer-training.csproj.CoreCompileInputs.cache
-/Users/nageshdixit/sources/commercetools-net-sdk-developer-training/obj/Debug/net8.0/commercetools-net-sdk-developer-training.MvcApplicationPartsAssemblyInfo.cs
-/Users/nageshdixit/sources/commercetools-net-sdk-developer-training/obj/Debug/net8.0/commercetools-net-sdk-developer-training.MvcApplicationPartsAssemblyInfo.cache
