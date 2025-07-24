@@ -18,9 +18,9 @@ namespace Training.Controllers
         }
 
         [HttpGet("search")]
-        public async Task<ActionResult<IProductPagedSearchResponse>> Search([FromQuery] ProductSearchViewModel productSearchViewModel)
+        public async Task<ActionResult<IProductPagedSearchResponse>> Search([FromQuery] SearchRequest searchRequest)
         {
-            var products = await _ProductsService.SearchProductsAsync(productSearchViewModel);
+            var products = await _ProductsService.SearchProductsAsync(searchRequest);
             return Ok(products);
         }
 

@@ -3,6 +3,7 @@ using commercetools.Base.Client;
 using commercetools.Sdk.Api.Models.Products;
 using Training.ViewModels;
 using commercetools.Sdk.Api.Models.ProductSearches;
+using commercetools.Sdk.Api.Models.Searches;
 
 
 namespace Training.Services
@@ -12,7 +13,7 @@ namespace Training.Services
         Task<IProduct> GetProductByKeyAsync(string key);
         Task<IProductPagedQueryResponse> GetProductsAsync();
         Task<bool> CheckProductExistsAsync(string key);
-        Task<IProductPagedSearchResponse> SearchProductsAsync(ProductSearchViewModel productSearchViewModel);
+        Task<IProductPagedSearchResponse> SearchProductsAsync(SearchRequest searchRequest);
 
     }
 
@@ -25,28 +26,85 @@ namespace Training.Services
             _api = api;
         }
 
-        public async Task<IProductPagedSearchResponse> SearchProductsAsync(ProductSearchViewModel productSearchViewModel)
+        public async Task<IProductPagedSearchResponse> SearchProductsAsync(SearchRequest searchRequest)
         {
-    
+
             ProductSearchRequest productSearchRequest = new ProductSearchRequest
             {
                 ProductProjectionParameters = new ProductSearchProjectionParams
                 {
-                    PriceCountry = productSearchViewModel.Country,
-                    PriceCurrency = productSearchViewModel.Currency,
-                    StoreProjection = productSearchViewModel.StoreKey
+                    PriceCountry = searchRequest.Country,
+                    PriceCurrency = searchRequest.Currency,
+                    StoreProjection = searchRequest.StoreKey
                 }
             };
 
-            var response = await _api.Products()
+            if (searchRequest.IncludeFacets)
+            {
+                productSearchRequest.Facets = CreateFacets();
+            }
+            if (searchRequest.Keyword != null)
+            {
+                productSearchRequest.Query = await CreateSearchQuery(searchRequest);
+            }
+
+            return await _api.Products()
                 .Search()
                 .Post(productSearchRequest)
                 .ExecuteAsync();
-
-            return response;
         }
 
+        private List<IProductSearchFacetExpression> CreateFacets()
+        {
+            return new List<IProductSearchFacetExpression>
+                {
+                    new ProductSearchFacetDistinctExpression{
+                        Distinct = new ProductSearchFacetDistinctValue{
+                            Name = "Color",
+                            Field = "variants.attributes.color-code",
+                            FieldType = ISearchFieldType.Text,
+                            Level = IProductSearchFacetCountLevelEnum.Variants,
+                            Scope = IProductSearchFacetScopeEnum.All
+                        }
+                    },
+                    new ProductSearchFacetDistinctExpression{
+                        Distinct = new ProductSearchFacetDistinctValue{
+                            Name = "Finish",
+                            Field = "variants.attributes.finish-code",
+                            FieldType = ISearchFieldType.Text,
+                            Level = IProductSearchFacetCountLevelEnum.Variants,
+                            Scope = IProductSearchFacetScopeEnum.All
+                        }
+                    }
+                };
+        }
 
+        private async Task<ISearchQuery> CreateSearchQuery(SearchRequest searchRequest)
+        {
+            return new SearchAndExpression{
+                And = new List<ISearchQuery>{
+                    new SearchFullTextExpression
+                    {
+                        FullText = new SearchFullTextValue
+                        {
+                            Field = "name",
+                            Value = searchRequest.Keyword,
+                            Language = searchRequest.Locale,
+                            MustMatch = ISearchMatchType.Any
+                        }
+                    },
+                    new SearchExactExpression
+                    {
+                        Exact = new SearchExactValue
+                        {
+                            Field = "stores",
+                            Value = await GetStoreIdByKeyAsync(searchRequest.StoreKey),
+                            FieldType = ISearchFieldType.SetReference
+                        }
+                    }
+                }
+            };
+        }
         public async Task<IProductPagedQueryResponse> GetProductsAsync()
         {
             var response = await _api
@@ -56,7 +114,6 @@ namespace Training.Services
 
             return response;
         }
-
         public async Task<IProduct> GetProductByKeyAsync(string key)
         {
             var response = await _api
@@ -83,11 +140,15 @@ namespace Training.Services
             }
             catch (ApiHttpException ex) when (ex.StatusCode == 404)
             {
-                // If we get a 404, the shipping method doesn't exist
+                // If we get a 404, the product doesn't exist
                 return false;
             }
+        }
 
-
+        public async Task<string> GetStoreIdByKeyAsync(string storeKey)
+{
+            var store = await _api.Stores().WithKey(storeKey).Get().ExecuteAsync();
+            return store.Id;
         }
 
 

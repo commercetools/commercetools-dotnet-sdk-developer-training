@@ -185,7 +185,7 @@
     if (country) params.set('country', country);
     if (keyword) params.set('keyword', keyword);
     if (storeKey) params.set('storeKey', storeKey);
-    if (includeFacets) params.set('facets', 'true');
+    if (includeFacets) params.set('includeFacets', 'true');
 
     const url = `/api/products/search?${params.toString()}`;
 

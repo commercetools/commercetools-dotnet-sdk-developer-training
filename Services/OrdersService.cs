@@ -28,7 +28,7 @@ namespace Training.Services
 
         public async Task<IOrder> CreateOrder(string storeKey, OrderCreateRequest request)
         {
-            var Cart = await _api
+            var order = await _api
                 .InStore(storeKey)
                 .Orders()
                 .Post(new OrderFromCartDraft
@@ -42,7 +42,7 @@ namespace Training.Services
                     OrderNumber = $"CT-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}"
                 })
                 .ExecuteAsync();
-            return Cart;
+            return order;
         }
 
         public async Task<IOrder> UpdateOrderCustomFields(string storeKey, string orderNumber, OrderCustomFieldsRequest request)
