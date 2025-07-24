@@ -1,0 +1,32 @@
+## .NET Core / ASP.NET Core
+bin/
+[Oo]bj/
+*.user
+*.rsuser
+*.suo
+*.userosscache
+*.sln.docstates
+
+## Build results
+*.dll
+*.exe
+*.app
+*.out
+*.vsix
+*.log
+
+.vscode/
+.vscode-test/
+
+*.swp
+*.sln.docstates
+
+**/appsettings.Development.json
+.env
+.env.*
+
+# NuGet Packages
+*.nupkg
+
+# NuGet Symbol Packages
+*.snupkg

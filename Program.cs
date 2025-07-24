@@ -1,29 +1,24 @@
-using commercetools.Base.Client;
 using commercetools.Sdk.Api;
-using commercetools.Sdk.Api.Client;
-using commercetools.Sdk.Api.Client.RequestBuilders.Projects;
-using commercetools.Sdk.Api.Extensions;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-
-using Training.Services;
+using commercetools.Sdk.ImportApi;
+using Training.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.UseCommercetoolsApi(builder.Configuration.GetSection("Commercetools"));
+builder.Services.UseCommercetoolsApi(builder.Configuration, Settings.SectionName);
+builder.Services.UseCommercetoolsImportApi(builder.Configuration,Settings.ImportSectionName);
 
-builder.Services.AddScoped<ByProjectKeyRequestBuilder>(sp =>
-{
-    var client = sp.GetRequiredService<IClient>();
-    var config = sp.GetRequiredService<IConfiguration>();
-    var projectKey = config["Commercetools:ProjectKey"]
-                     ?? throw new InvalidOperationException("Missing ProjectKey in config.");
+builder.Services.Configure<Settings>(
+    builder.Configuration.GetSection(Settings.SectionName));
 
-    return client.WithApi().WithProjectKey(projectKey);
-});
 
-builder.Services.AddControllers();
-builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.DefaultIgnoreCondition =
+            System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
+    });
+builder.Services.AddApplicationServices();
+
 
 var app = builder.Build();
 
@@ -34,5 +29,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseRouting();
 app.UseAuthorization();
+app.UseDefaultFiles();
+app.UseStaticFiles();
 app.MapControllers();
 app.Run();

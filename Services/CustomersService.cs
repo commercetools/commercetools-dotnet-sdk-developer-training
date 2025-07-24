@@ -1,54 +1,87 @@
-using System.Threading.Tasks;
 using commercetools.Sdk.Api.Client;
-// using commercetools.Base.Client;
 using commercetools.Sdk.Api.Models.Customers;
-using Microsoft.AspNetCore.Mvc;
-using Training.Services;
-using Microsoft.Extensions.Configuration;
-using commercetools.Base.Client;
-using commercetools.Sdk.Api.Extensions;
-using commercetools.Sdk.Api.Client.RequestBuilders.Projects;
+using Training.ViewModels;
+using commercetools.Sdk.Api.Models.Common;
+using commercetools.Sdk.Api.Models.Carts;
 
 
 namespace Training.Services
 {
     public interface ICustomerService
     {
-        Task<ICustomer> GetCustomerByIdAsync(string id);
-        Task<ICustomer> CreateCustomerAsync(ICustomerDraft customerDraft);
-        // Add more customer-related methods as needed
+        Task<ICustomer> GetCustomerByIdAsync(string storeKey, string id);
+        Task<ICustomerSignInResult> CreateCustomerAsync(string storeKey, CustomerSignupRequest customerSignupRequest);
+
+        Task<ICustomerSignInResult> SigninCustomerAsync(string storeKey, CustomerSigninRequest customerSigninRequest);
+        
     }
 
     public class CustomerService : ICustomerService
     {
-        private readonly ByProjectKeyRequestBuilder _api;
+        private readonly ProjectApiRoot _api;
 
 
-        public CustomerService(ByProjectKeyRequestBuilder api)
+        public CustomerService(ProjectApiRoot api)
 
         {
             _api = api;
         }
 
-        public async Task<ICustomer> GetCustomerByIdAsync(string id)
+        public async Task<ICustomer> GetCustomerByIdAsync(string storeKey, string id)
         {
-            var response = await _api
-                .Customers()
-                .WithId(id)
-                .Get()
-                .ExecuteAsync();
-
-            return response;
+            return await _api
+                 .InStore(storeKey)
+                 .Customers()
+                 .WithId(id)
+                 .Get()
+                 .ExecuteAsync();
         }
 
-        public async Task<ICustomer> CreateCustomerAsync(ICustomerDraft customerDraft)
+        public async Task<ICustomerSignInResult> CreateCustomerAsync(string storeKey, CustomerSignupRequest customerSignupRequest)
         {
-            var response = await _api
+            var customerDraft = new CustomerDraft
+            {
+                Email = customerSignupRequest.Email,
+                Password = customerSignupRequest.Password,
+                FirstName = customerSignupRequest.FirstName,
+                LastName = customerSignupRequest.LastName,
+                Key = customerSignupRequest.Key,
+                Addresses = new List<IBaseAddress> { new BaseAddress{
+                    Country = customerSignupRequest.Country,
+                }},
+                DefaultBillingAddress = customerSignupRequest.IsDefaultBillingAddress ? 0 : null,
+                DefaultShippingAddress = customerSignupRequest.IsDefaultShippingAddress ? 0 : null,
+                AnonymousCart = new CartResourceIdentifier
+                {
+                    Id = customerSignupRequest.AnonymousCartId,
+                    TypeId = IReferenceTypeId.Cart
+                }
+            };
+            return await _api
+                .InStore(storeKey)
                 .Customers()
                 .Post(customerDraft)
                 .ExecuteAsync();
 
-            return response.Customer;
+        }
+
+        public async Task<ICustomerSignInResult> SigninCustomerAsync(string storeKey, CustomerSigninRequest customerSigninRequest)
+        {
+            var customerSignin = new CustomerSignin
+            {
+                Email = customerSigninRequest.Email,
+                Password = customerSigninRequest.Password,
+                AnonymousCart = new CartResourceIdentifier
+                {
+                    Id = customerSigninRequest.AnonymousCartId,
+                    TypeId = IReferenceTypeId.Cart
+                }
+            };
+            return await _api
+                .InStore(storeKey)
+                .Login()
+                .Post(customerSignin)
+                .ExecuteAsync();
         }
     }
 }

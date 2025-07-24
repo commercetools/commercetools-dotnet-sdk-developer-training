@@ -1,11 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using commercetools.Sdk.Api.Models.Customers;
 using Training.Services;
+using Training.ViewModels;
 
 namespace Training.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/in-store/{storeKey}/[controller]")]
     public class CustomersController : ControllerBase
     {
         private readonly ICustomerService _customerService;
@@ -16,11 +17,11 @@ namespace Training.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<ICustomer>> Get(string id)
+        public async Task<ActionResult<ICustomer>> Get([FromRoute] string storeKey, string id)
         {
             try
             {
-                var customer = await _customerService.GetCustomerByIdAsync(id);
+                var customer = await _customerService.GetCustomerByIdAsync(storeKey, id);
                 return Ok(customer);
             }
             catch (commercetools.Base.Client.ApiHttpException ex) when (ex.StatusCode == 404)
@@ -30,10 +31,17 @@ namespace Training.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<ICustomer>> Post([FromBody] ICustomerDraft customerDraft)
+        public async Task<ActionResult<ICustomerSignInResult>> Post([FromRoute] string storeKey, [FromBody] CustomerSignupRequest customerSignupRequest)
         {
-            var customer = await _customerService.CreateCustomerAsync(customerDraft);
-            return CreatedAtAction(nameof(Get), new { id = customer.Id }, customer);
+            var customerSignInResult = await _customerService.CreateCustomerAsync(storeKey, customerSignupRequest);
+            return Ok(customerSignInResult);
+        }
+
+        [HttpPost("login")]
+        public async Task<ActionResult<ICustomerSignInResult>> PostSignin([FromRoute] string storeKey, [FromBody] CustomerSigninRequest customerSigninRequest)
+        {
+            var customerSignInResult = await _customerService.SigninCustomerAsync(storeKey, customerSigninRequest);
+            return Ok(customerSignInResult);
         }
     }
 }
