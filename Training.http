@@ -1,7 +1,3 @@
-@Training_HostAddress = http://localhost:5086
+@Training_HostAddress = http://localhost:8080
 
-### Get a customer by ID
-GET {{Training_HostAddress}}/api/customers/3eabdafd-5801-4417-a2c5-e2d84a2acf4
 Accept: application/json
-
-###
