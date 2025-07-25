@@ -56,7 +56,5 @@ namespace Training.Services
                 .Get()
                 .ExecuteAsync();
         }
-        
-
     }
 }

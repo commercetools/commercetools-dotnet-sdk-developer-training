@@ -3,6 +3,7 @@ using commercetools.Base.Client;
 using commercetools.Sdk.Api.Models.Products;
 using Training.ViewModels;
 using commercetools.Sdk.Api.Models.ProductSearches;
+using commercetools.Sdk.Api.Models.Searches;
 
 
 namespace Training.Services
@@ -12,7 +13,7 @@ namespace Training.Services
         Task<IProduct> GetProductByKeyAsync(string key);
         Task<IProductPagedQueryResponse> GetProductsAsync();
         Task<bool> CheckProductExistsAsync(string key);
-        Task<IProductPagedSearchResponse> SearchProductsAsync(ProductSearchViewModel productSearchViewModel);
+        Task<IProductPagedSearchResponse> SearchProductsAsync(SearchRequest searchRequest);
 
     }
 
@@ -25,28 +26,83 @@ namespace Training.Services
             _api = api;
         }
 
-        public async Task<IProductPagedSearchResponse> SearchProductsAsync(ProductSearchViewModel productSearchViewModel)
+        public async Task<IProductPagedSearchResponse> SearchProductsAsync(SearchRequest searchRequest)
         {
     
             ProductSearchRequest productSearchRequest = new ProductSearchRequest
             {
                 ProductProjectionParameters = new ProductSearchProjectionParams
                 {
-                    PriceCountry = productSearchViewModel.Country,
-                    PriceCurrency = productSearchViewModel.Currency,
-                    StoreProjection = productSearchViewModel.StoreKey
-                }
+                    PriceCountry = searchRequest.Country,
+                    PriceCurrency = searchRequest.Currency,
+                    StoreProjection = searchRequest.StoreKey
+                },
+                Sort = new List<ISearchSorting>
+                {
+                    new SearchSorting
+                    {
+                        Field = "variants.prices.centAmount",
+                        Mode = ISearchSortMode.Min,
+                        Order = ISearchSortOrder.Asc,
+                        Filter = CreateSortFilter(searchRequest)
+                    }
+                }           
             };
 
-            var response = await _api.Products()
+            if (searchRequest.IncludeFacets)
+            {
+                productSearchRequest.Facets = CreateFacets();
+            }
+            if (searchRequest.Keyword != null)
+            {
+                productSearchRequest.Query = await CreateSearchQuery(searchRequest);
+            }
+
+            return await _api.Products()
                 .Search()
                 .Post(productSearchRequest)
                 .ExecuteAsync();
-
-            return response;
         }
 
+        private ISearchQuery CreateSortFilter(SearchRequest searchRequest)
+        {
+            return new SearchAndExpression()
+            {
+                And = new List<ISearchQuery>()
+                {
+                    new SearchExactExpression()
+                    {
+                        Exact = new SearchExactValue()
+                        {
+                            Field = "variants.prices.currencyCode",
+                            FieldType = ISearchFieldType.Text,
+                            Value = searchRequest.Currency
+                        }
+                    },
+                    new SearchExactExpression()
+                    {
+                        Exact = new SearchExactValue()
+                        {
+                            Field = "variants.prices.country",
+                            FieldType = ISearchFieldType.Text,
+                            Value = searchRequest.Country
+                        }
+                    }
+                }
+            };
+        }
+        private List<IProductSearchFacetExpression> CreateFacets()
+        {
+            return new List<IProductSearchFacetExpression>();
+            // TODO: Add Facet expressions
+        }
 
+        private Task<ISearchQuery> CreateSearchQuery(SearchRequest searchRequest)
+        {
+            // TODO: Add Search Query expressions to filter by keyword and store
+            throw new NotImplementedException("This functions is not implemented yet");
+
+        }
         public async Task<IProductPagedQueryResponse> GetProductsAsync()
         {
             var response = await _api
@@ -67,8 +123,6 @@ namespace Training.Services
 
             return response;
         }
-
-
         public async Task<bool> CheckProductExistsAsync(string key)
         {
             try
@@ -83,7 +137,7 @@ namespace Training.Services
             }
             catch (ApiHttpException ex) when (ex.StatusCode == 404)
             {
-                // If we get a 404, the shipping method doesn't exist
+                // If we get a 404, the product doesn't exist
                 return false;
             }
 
