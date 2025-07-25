@@ -50,8 +50,7 @@ namespace Training.Controllers
         {
             try
             {
-                Console.WriteLine($"{cartCreateRequest.Sku}");
-                var cart = await _cartsService.CreateCart(storeKey, cartCreateRequest);
+                var cart = await _cartsService.CreateCartAsync(storeKey, cartCreateRequest);
                 return Ok(cart);
             }
             catch (commercetools.Base.Client.ApiHttpException ex) when (ex.StatusCode == 401)
@@ -61,25 +60,29 @@ namespace Training.Controllers
         }
 
         [HttpPost("{id}/lineitems")]
-        public async Task<ActionResult<ICart>> PostUpdate([FromRoute] string storeKey, [FromRoute] string id, [FromBody] CartUpdateRequest cartUpdateRequest)
+        public async Task<ActionResult<ICart>> AddLineItem([FromRoute] string storeKey, [FromRoute] string id, [FromBody] CartUpdateRequest cartUpdateRequest)
         {
             try
             {
-                var cart = await _cartsService.UpdateCart(storeKey, id, cartUpdateRequest);
+                var cart = await _cartsService.AddLineItemAsync(storeKey, id, cartUpdateRequest);
                 return Ok(cart);
             }
-            catch (commercetools.Base.Client.ApiHttpException ex) when (ex.StatusCode == 401)
+            catch (commercetools.Base.Client.ApiHttpException ex) when (ex.StatusCode == 409)
             {
-                return BadRequest("Bad request");
+                return Conflict("Conflict occurred while updating the cart.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An unexpected error occurred.");
             }
         }
 
         [HttpPost("{id}/code")]
-        public async Task<ActionResult<ICart>> PostUpdateCode([FromRoute] string storeKey, [FromRoute] string id, [FromBody] CartUpdateCodeRequest cartUpdateCodeRequest)
+        public async Task<ActionResult<ICart>> AddDiscountCode([FromRoute] string storeKey, [FromRoute] string id, [FromBody] CartUpdateCodeRequest cartUpdateCodeRequest)
         {
             try
             {
-                var cart = await _cartsService.UpdateCartCode(storeKey, id, cartUpdateCodeRequest);
+                var cart = await _cartsService.AddDiscountCodeAsync(storeKey, id, cartUpdateCodeRequest);
                 return Ok(cart);
             }
             catch (commercetools.Base.Client.ApiHttpException ex) when (ex.StatusCode == 401)
@@ -89,11 +92,11 @@ namespace Training.Controllers
         }
 
         [HttpPost("{id}/shipping-address")]
-        public async Task<ActionResult<ICart>> PostUpdateShippingAddress([FromRoute] string storeKey, [FromRoute] string id, [FromBody] CartUpdateShippingAddressRequest cartUpdateShippingAddressRequest)
+        public async Task<ActionResult<ICart>> SetShippingAddress([FromRoute] string storeKey, [FromRoute] string id, [FromBody] CartUpdateShippingAddressRequest cartUpdateShippingAddressRequest)
         {
             try
             {
-                var cart = await _cartsService.UpdateCartShippingAddress(storeKey, id, cartUpdateShippingAddressRequest);
+                var cart = await _cartsService.SetShippingAddressAsync(storeKey, id, cartUpdateShippingAddressRequest);
                 return Ok(cart);
             }
             catch (commercetools.Base.Client.ApiHttpException ex) when (ex.StatusCode == 401)
@@ -103,11 +106,11 @@ namespace Training.Controllers
         }
         
         [HttpPost("{id}/shipping-method")]
-        public async Task<ActionResult<ICart>> PostUpdateShippingMethod([FromRoute] string storeKey, [FromRoute] string id, [FromBody] CartUpdateShippingMethodRequest cartUpdateShippingMethodRequest)
+        public async Task<ActionResult<ICart>> SetShippingMethod([FromRoute] string storeKey, [FromRoute] string id, [FromBody] CartUpdateShippingMethodRequest cartUpdateShippingMethodRequest)
         {
             try
             {
-                var cart = await _cartsService.UpdateCartShippingMethod(storeKey, id, cartUpdateShippingMethodRequest);
+                var cart = await _cartsService.SetShippingMethodAsync(storeKey, id, cartUpdateShippingMethodRequest);
                 return Ok(cart);
             }
             catch (commercetools.Base.Client.ApiHttpException ex) when (ex.StatusCode == 401)
@@ -115,6 +118,5 @@ namespace Training.Controllers
                 return BadRequest("Bad request");
             }
         }
-
     }
 }

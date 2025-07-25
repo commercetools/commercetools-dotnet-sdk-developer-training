@@ -8,8 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="commercetools.Sdk.Api" Version="12.13.0" />
-    <PackageReference Include="commercetools.Sdk.ImportApi" Version="12.13.0" />
+    <PackageReference Include="commercetools.Sdk.Api" Version="13.0.0" />
+    <PackageReference Include="commercetools.Sdk.ImportApi" Version="13.0.0" />
     <PackageReference Include="CsvHelper" Version="33.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.3.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.7" />

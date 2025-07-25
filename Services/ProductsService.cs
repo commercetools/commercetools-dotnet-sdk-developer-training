@@ -14,18 +14,15 @@ namespace Training.Services
         Task<IProductPagedQueryResponse> GetProductsAsync();
         Task<bool> CheckProductExistsAsync(string key);
         Task<IProductPagedSearchResponse> SearchProductsAsync(SearchRequest searchRequest);
-
     }
 
     public class ProductsService : IProductsService
     {
         private readonly ProjectApiRoot _api;
-
         public ProductsService(ProjectApiRoot api)
         {
             _api = api;
         }
-
         public async Task<IProductPagedSearchResponse> SearchProductsAsync(SearchRequest searchRequest)
         {
 
@@ -36,7 +33,17 @@ namespace Training.Services
                     PriceCountry = searchRequest.Country,
                     PriceCurrency = searchRequest.Currency,
                     StoreProjection = searchRequest.StoreKey
-                }
+                },
+                Sort = new List<ISearchSorting>
+                {
+                    new SearchSorting
+                    {
+                        Field = "variants.prices.centAmount",
+                        Mode = ISearchSortMode.Min,
+                        Order = ISearchSortOrder.Asc,
+                        Filter = CreateSortFilter()
+                    }
+                }           
             };
 
             if (searchRequest.IncludeFacets)
@@ -54,6 +61,34 @@ namespace Training.Services
                 .ExecuteAsync();
         }
 
+
+        private ISearchQuery CreateSortFilter()
+        {
+            return new SearchAndExpression()
+            {
+                And = new List<ISearchQuery>()
+                {
+                    new SearchExactExpression()
+                    {
+                        Exact = new SearchExactValue()
+                        {
+                            Field = "variants.prices.currencyCode",
+                            FieldType = ISearchFieldType.Text,
+                            Value = "EUR"
+                        }
+                    },
+                    new SearchExactExpression()
+                    {
+                        Exact = new SearchExactValue()
+                        {
+                            Field = "variants.prices.country",
+                            FieldType = ISearchFieldType.Text,
+                            Value = "DE"
+                        }
+                    }
+                }
+            };
+        }
         private List<IProductSearchFacetExpression> CreateFacets()
         {
             return new List<IProductSearchFacetExpression>
@@ -146,11 +181,9 @@ namespace Training.Services
         }
 
         public async Task<string> GetStoreIdByKeyAsync(string storeKey)
-{
+        {
             var store = await _api.Stores().WithKey(storeKey).Get().ExecuteAsync();
             return store.Id;
         }
-
-
     }
 }

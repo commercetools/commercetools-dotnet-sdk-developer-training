@@ -3,6 +3,7 @@ using Training.Services;
 using commercetools.Sdk.Api.Models.Products;
 using commercetools.Sdk.Api.Models.ProductSearches;
 using Training.ViewModels;
+using commercetools.Sdk.Api.Serialization;
 
 namespace Training.Controllers
 {
@@ -11,17 +12,20 @@ namespace Training.Controllers
     public class ProductsController : ControllerBase
     {
         private readonly IProductsService _ProductsService;
+        private readonly SerializerService _SerializerService;
 
-        public ProductsController(IProductsService ProductsService)
+        public ProductsController(IProductsService ProductsService, SerializerService SerializerService)
         {
             _ProductsService = ProductsService;
+            _SerializerService = SerializerService;
         }
 
         [HttpGet("search")]
         public async Task<ActionResult<IProductPagedSearchResponse>> Search([FromQuery] SearchRequest searchRequest)
         {
             var products = await _ProductsService.SearchProductsAsync(searchRequest);
-            return Ok(products);
+            
+            return this.Content(_SerializerService.Serialize(products), "application/json");
         }
 
         [HttpGet()]

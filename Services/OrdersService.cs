@@ -14,18 +14,15 @@ namespace Training.Services
         Task<IOrderPagedQueryResponse> GetOrdersAsync(string storeKey);
         Task<IOrder> CreateOrder(string storeKey, OrderCreateRequest request);
         Task<IOrder> UpdateOrderCustomFields(string storeKey, string orderNumber, OrderCustomFieldsRequest request);
-
     }
 
     public class OrdersService : IOrdersService
     {
         private readonly ProjectApiRoot _api;
-
         public OrdersService(ProjectApiRoot api)
         {
             _api = api;
         }
-
         public async Task<IOrder> CreateOrder(string storeKey, OrderCreateRequest request)
         {
             var order = await _api
@@ -93,7 +90,5 @@ namespace Training.Services
                 .Get()
                 .ExecuteAsync();
         }
-        
-
     }
 }
