@@ -22,13 +22,10 @@ namespace Training.Services
     {
         private readonly ProjectApiRoot _api;
 
-
         public ShippingService(ProjectApiRoot api)
-
         {
             _api = api;
         }
-
 
         public async Task<IShippingMethod> GetShippingMethodByKeyAsync(string key)
         {

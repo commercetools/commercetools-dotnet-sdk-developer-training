@@ -1,11 +1,12 @@
 using commercetools.Sdk.Api.Client;
 using commercetools.Sdk.Api.Models.GraphQl;
+using Training.ViewModels;
 
 namespace Training.Services
 {
     public interface IGraphQlService
     {
-        Task<IGraphQLResponse> PostGraphQlQuery(string storeKey, string email);
+        Task<IGraphQLResponse> PostGraphQlQuery(GraphQlRequest graphQlRequest);
     }
 
     public class GraphQlService : IGraphQlService
@@ -16,16 +17,22 @@ namespace Training.Services
             _api = api;
         }
 
-        public async Task<IGraphQLResponse> PostGraphQlQuery(string storeKey, string email)
+        public async Task<IGraphQLResponse> PostGraphQlQuery(GraphQlRequest graphQlRequest)
         {
-            var storeId = await GetStoreIdByKeyAsync(storeKey);
-
             var query = @"
-                query MyQuery($storeKey: KeyReferenceInput!, $where: String!) {
+                query MyQuery($storeKey: KeyReferenceInput!, $locale: Locale!, $where: String!) {
                     inStore(key: $storeKey) {
                         orders(where: $where) {
                             results {
                                 customerEmail
+                                customer {
+                                    firstName
+                                    lastName
+                                }
+                                lineItems {
+                                    name(locale: $locale)
+                                    totalPrice {centAmount currencyCode}
+                                }
                                 totalPrice {
                                     centAmount
                                     currencyCode
@@ -37,8 +44,9 @@ namespace Training.Services
 
             var variables = new GraphQLVariablesMap
             {
-                ["storeKey"] = storeKey,
-                ["where"] = $"customerEmail=\"{email}\""
+                ["storeKey"] = graphQlRequest.StoreKey,
+                ["where"] = $"customerEmail=\"{graphQlRequest.Email}\"",
+                ["locale"] = graphQlRequest.Locale
             };
 
 
@@ -51,12 +59,6 @@ namespace Training.Services
                 .Graphql()
                 .Post(request)
                 .ExecuteAsync();
-        }
-        
-        public async Task<string> GetStoreIdByKeyAsync(string storeKey)
-        {
-            var store = await _api.Stores().WithKey(storeKey).Get().ExecuteAsync();
-            return store.Id;
         }
     }
 }

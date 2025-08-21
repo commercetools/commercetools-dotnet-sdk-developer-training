@@ -17,15 +17,15 @@ namespace Training.Controllers
         [HttpGet("countries")]
         public async Task<ActionResult<List<string>>> GetCountries()
         {
-            var Project = await _ProjectService.GetCountriesAsync();
-            return Ok(Project);
+            var countries = await _ProjectService.GetCountriesAsync();
+            return Ok(countries);
         }
         
         [HttpGet("stores")]
         public async Task<ActionResult<List<string>>> GetStores()
         {
-                var Project = await _ProjectService.GetStoresAsync();
-                return Ok(Project);
+            var stores = await _ProjectService.GetStoresAsync();
+            return Ok(stores);
         }
 
     }

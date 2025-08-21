@@ -72,11 +72,18 @@
     const jsonResponseDiv = document.getElementById('json-response');
 
     const storeKey = localStorage.getItem('store');
+    const locale = localStorage.getItem('locale');
+
+    const params = new URLSearchParams();
+
+      if (locale) params.set('locale', locale);
+      if (storeKey) params.set('storeKey', storeKey);
 
     jsonResponseDiv.textContent = '';
 
     if (email) {
-      let url = `/api/in-store/${storeKey}/graphql/orders?email=${email}`;
+      params.set('email', email);
+      let url = `/api/graphql/orders?${params.toString()}`;
 
       fetch(url)
         .then(handleResponse)

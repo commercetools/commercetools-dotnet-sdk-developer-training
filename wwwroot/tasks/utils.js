@@ -36,4 +36,4 @@ function getCountries() {
     });
 }
 
-// var countries = getCountries();
+var countries = getCountries();

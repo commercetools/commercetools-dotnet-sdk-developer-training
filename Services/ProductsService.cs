@@ -48,7 +48,7 @@ namespace Training.Services
 
             if (searchRequest.IncludeFacets)
             {
-                productSearchRequest.Facets = CreateFacets();
+                productSearchRequest.Facets = CreateFacets(searchRequest.Locale);
             }
             if (searchRequest.Keyword != null)
             {
@@ -89,15 +89,16 @@ namespace Training.Services
                 }
             };
         }
-        private List<IProductSearchFacetExpression> CreateFacets()
+        private List<IProductSearchFacetExpression> CreateFacets(string locale)
         {
             return new List<IProductSearchFacetExpression>
                 {
                     new ProductSearchFacetDistinctExpression{
                         Distinct = new ProductSearchFacetDistinctValue{
                             Name = "Color",
-                            Field = "variants.attributes.color-code",
-                            FieldType = ISearchFieldType.Text,
+                            Field = "variants.attributes.search-color.label",
+                            FieldType = ISearchFieldType.Lenum,
+                            Language = locale,
                             Level = IProductSearchFacetCountLevelEnum.Variants,
                             Scope = IProductSearchFacetScopeEnum.All
                         }
@@ -105,8 +106,9 @@ namespace Training.Services
                     new ProductSearchFacetDistinctExpression{
                         Distinct = new ProductSearchFacetDistinctValue{
                             Name = "Finish",
-                            Field = "variants.attributes.finish-code",
-                            FieldType = ISearchFieldType.Text,
+                            Field = "variants.attributes.search-finish.label",
+                            FieldType = ISearchFieldType.Lenum,
+                            Language = locale,
                             Level = IProductSearchFacetCountLevelEnum.Variants,
                             Scope = IProductSearchFacetScopeEnum.All
                         }

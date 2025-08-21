@@ -77,7 +77,7 @@ namespace Training.Controllers
             }
         }
 
-        [HttpPost("{id}/code")]
+        [HttpPost("{id}/discount-code")]
         public async Task<ActionResult<ICart>> AddDiscountCode([FromRoute] string storeKey, [FromRoute] string id, [FromBody] CartUpdateCodeRequest cartUpdateCodeRequest)
         {
             try
